@@ -143,4 +143,4 @@ validate(): Record<keyof IBuyer, string> - проверяет валидност
 Приложение взаимодействует с сервером через класс ShopAPI, который использует композицию базового класса Api.
 
 getProducts(): Promise<IProduct[]> - отправляет get запрос на product и возвращает массив товаров.
-orderProducts(order: IOrder): Promise<IOrder> - отправляет POST запрос на order с данными заказа.
+sendOrder(order: IOrder): Promise<IOrderResponse> - отправляет POST запрос на order с данными заказа.

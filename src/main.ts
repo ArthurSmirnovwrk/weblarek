@@ -8,41 +8,50 @@ import { ProductsModel } from "./components/Models/ProductsModel";
 import { CartModel } from "./components/Models/CartModel";
 import { ShopAPI } from "./components/Models/ShopAPI";
 
-import { IOrder, TPayment } from "./types/index";
+import { Api } from "./components/base/Api";
 
 
-const catalog = new ProductsModel();
-const cart = new CartModel();
-const buyer = new BuyerModel();
+const testCatalog = new ProductsModel();
+const testCart = new CartModel();
+const testBuyer = new BuyerModel();
 
-catalog.setItems(apiProducts.items);
+testCatalog.setItems(apiProducts.items);
+console.log("Массив товаров из каталога:", testCatalog.getItems());
+console.log(
+  "Товар найден:",
+  testCatalog.getItem("854cef69-976d-4c2a-a18c-2aa45046c390")
+);
+testCatalog.setSelected(apiProducts.items[1]);
+console.log("Выбран продукт:", testCatalog.getSelected());
 
-console.log("Массив товаров из каталога: ", catalog.getItems());
+testCart.addItem(apiProducts.items[1]);
 
-cart.addItem(apiProducts.items[0]);
-console.log("Товары в корзине: ", cart.getItems());
-console.log("Общая стоимость: ", cart.getTotal());
-buyer.setData({ email: "Ivanov@mail.ru", payment: "cash" });
-console.log("Данные покупателя: ", buyer.getData());
+console.log("Товары в корзине:", testCart.getItems());
+console.log(`Общая стоимость: ${testCart.getTotal()} у.е.`);
 
-const api = new ShopAPI(API_URL);
+testCart.clear();
+console.log(`В корзине: ${testCart.getCount()}`);
 
-api.getProducts().then((products) => {
-  console.log("Товары с сервера:", products);
+testBuyer.setData({
+  address: "11111111111111",
+  payment: "cash",
+  phone: "1111111111111",
+  email: "Ivanov@mail.ru",
 });
+console.log(testBuyer.getData(), testBuyer.validate());
+testBuyer.clear();
+console.log(testBuyer.getData(), testBuyer.validate());
 
-const test: IOrder = {
-  items: ["854cef69-976d-4c2a-a18c-2aa45046c390"],
-  total: 750,
-  buyer: {
-    payment: "cash" as TPayment,
-    phone: "1111111111111",
-    email: "Ivanov@mail.ru",
-    address: "11111111111111",
-  },
-};
+const api = new Api(API_URL);
+const shopAPI = new ShopAPI(api);
+const newProductsModel = new ProductsModel();
 
-api.orderProducts(test).then((order) => {
-  console.log("Заказ отправлен:", order);
-});
-
+shopAPI
+  .getProducts()
+  .then((products) => {
+    console.log("Каталог товаров:", products);
+    newProductsModel.setItems(products);
+  })
+  .catch((err) => {
+    console.error("Ошибка при загрузке каталога:", err);
+  });

@@ -23,8 +23,12 @@ export interface IBuyer {
     address: string;
   }
   
-export interface IOrder {
+export interface IOrder extends IBuyer{
     items: string[];
     total: number;
-    buyer: IBuyer;
   }
+
+export interface IOrderResponse {
+  id: string;
+  total: number;
+}

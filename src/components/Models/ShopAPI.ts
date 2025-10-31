@@ -1,14 +1,17 @@
-import { Api } from "../base/Api";
-import { IApi, IProduct, IOrder } from "../../types/index";
+import { IApi, IProduct, IOrder, IOrderResponse } from "../../types/index";
 
-export class ShopAPI extends Api implements IApi {
-  getProducts(): Promise<IProduct[]> {
-    return this.get<{ items: IProduct[] }>("product").then(
-      (data) => data.items
-    );
+export class ShopAPI {
+  private api: IApi;
+
+  constructor(api: IApi) {
+    this.api = api;
   }
 
-  orderProducts(order: IOrder): Promise<IOrder> {
-    return this.post<IOrder>("order", order, "POST");
+  getProducts(): Promise<IProduct[]> {
+    return this.api.get<IProduct[]>("/product/");
+  }
+
+  sendOrder(order: IOrder): Promise<IOrderResponse> {
+    return this.api.post<IOrderResponse>("/order/", order);
   }
 }
