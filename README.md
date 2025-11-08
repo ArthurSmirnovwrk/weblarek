@@ -144,3 +144,107 @@ validate(): Record<keyof IBuyer, string> - проверяет валидност
 
 getProducts(): Promise<IProduct[]> - отправляет get запрос на product и возвращает массив товаров.
 sendOrder(order: IOrder): Promise<IOrderResponse> - отправляет POST запрос на order с данными заказа.
+
+
+### Слой представления (View)
+
+
+
+#### Класс Header
+Отвечает за шапку, управляет оторбражением количества товаров
+Конструктор: constructor(protected events: IEvents, container: HTMLElement)
+Поля:
+counterElement: HTMLElement - элемент, отображающий количество товаров
+basketButton: HTMLButtonElement - кнопка для открытия корзины
+
+#### Класс Modal
+Реализует отображение модального окна, позволяет вставлять любой контент внутрь него
+Конструктор: constructor(protected events: IEvents, container: HTMLElement)
+Поля:
+contentElement - область для вставки содержимого
+closeButton - кнопка для закрытия окна
+
+#### Класс Gallery
+Рендерит каталог товаров на странице. Отвечает за отображение списка карточек товаров
+Конструктор: constructor(container: HTMLElement)
+Поля:
+galleryElement - элемент, содержащий карточки каталога
+
+#### Класс Success
+Отображает экран успешного оформления заказа с итоговой суммой покупки
+Конструктор: constructor(protected events: IEvents, container: HTMLElement)
+Поля:
+successOrderClose - кнопка закрытия окна
+successOrderDescription - элемент, показывающий сумму заказа
+
+#### Класс Basket
+Рендерит корзину и управляет её содержимым
+Конструктор: constructor(protected events: IEvents, container: HTMLElement)
+Поля:
+basketListElement - список товаров
+basketOrderButton - кнопка оформления заказа
+basketPriceElement - итоговая сумма
+
+
+
+#### Класс Card
+Базовый компонент карточки товара. Используется всеми типами карточек
+Конструктор: constructor(container: HTMLElement)
+Поля:
+titleElement - название товара
+priceElement - цена товара
+
+#### Класс CardCatalog
+Представляет карточку товара в каталоге
+Конструктор: constructor(container: HTMLElement, actions?: ICardActions)
+Поля:
+imageElement - изображение товара
+categoryElement - категория товара
+
+#### Класс CardPreview
+Отображает детальную карточку товара в модальном окне при клике по товару
+Конструктор: constructor(container: HTMLElement, protected events: IEvents)
+Поля:
+buttonPreviewElement - кнопка для добавления или удаления товара из корзины
+
+#### Класс CardBasket
+Отвечает за отображение карточки товара в корзине
+Конструктор: constructor(container: HTMLElement, actions?: ICardActions)
+Поля:
+indexElement - номер товара;
+deleteButtonElement - кнопка удаления товара.
+
+
+
+#### Класс Form
+Базовый класс для всех форм приложения. Управляет состоянием кнопки и отображением ошибок
+Конструктор: constructor(protected events: IEvents, container: HTMLFormElement)
+Поля:
+submitButton - кнопка отправки формы
+errorElement - элемент для вывода ошибок
+
+#### Класс FormOrder
+Форма выбора способа оплаты и адреса доставки
+Конструктор: constructor(protected events: IEvents, container: HTMLFormElement)
+Поля:
+buttonOnlinePayment и buttonOfflinePayment - кнопки выбора способа оплаты
+addressDeliveryInput - поле ввода адреса
+
+#### Класс FormOrder
+Форма ввода контактной информации пользователя (e-mail и телефон)
+Конструктор: constructor(protected events: IEvents, container: HTMLFormElement)
+Поля:
+emailInput
+phoneInput
+
+
+
+### Система событий
+basket:open - открытие корзины
+modal:close - закрытие модального окна
+order:open - переход к оформлению заказа
+order:submit - подтверждение данных оплаты и адреса
+form:change - изменение любого поля формы
+contacts:submit - подтверждение контактных данных
+cart:changed - изменение содержимого корзины
+product:selected - выбор конкретного товара

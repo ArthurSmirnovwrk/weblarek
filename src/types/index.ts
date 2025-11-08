@@ -16,6 +16,11 @@ export interface IProduct {
     price: number | null;
   }
 
+export interface IProductResponse {
+  total: number;
+  items: IProduct[];
+}
+
 export interface IBuyer {
     payment: TPayment;
     email: string;
