@@ -34,9 +34,12 @@ export class CardPreview extends Card<ICardPreview> {
         });
     }
 
-    buttonTextToggle(value: string, boolean: boolean) {
+    set buttonText(value: string) {
         this.buttonPreviewElement.textContent = value;
-        this.buttonPreviewElement.disabled = boolean;
+    }
+      
+    set buttonDisabled(value: boolean) {
+        this.buttonPreviewElement.disabled = value;
     }
 
     set image(value: string) {

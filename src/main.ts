@@ -4,14 +4,14 @@ import { API_URL } from "./utils/constants";
 import { ShopAPI } from "./components/Models/ShopAPI";
 import { Api } from "./components/base/Api";
 
-import { Buyer } from "./components/Models/BuyerModel"; // <- используем Buyer (с events)
+import { Buyer } from "./components/Models/BuyerModel";
 import { ProductsModel } from "./components/Models/ProductsModel";
 import { CartModel } from "./components/Models/CartModel";
 
 import { EventEmitter } from "./components/base/Events";
 import { cloneTemplate } from "./utils/utils";
 import { ensureElement } from './utils/utils';
-import { IProduct, IBuyer, TPayment, IOrder } from "./types/index";
+import { IProduct, IBuyer, IOrder } from "./types/index";
 
 import { Header } from "./components/View/Header";
 import { Basket } from "./components/View/Basket";
@@ -30,7 +30,7 @@ const api = new Api(API_URL);
 const shopAPI = new ShopAPI(api);
 const events = new EventEmitter();
 
-const catalogModel = new ProductsModel();
+const catalogModel = new ProductsModel(events);
 const customerModel = new Buyer(events);
 const shoppingCartModel = new CartModel(events);
 
@@ -47,6 +47,7 @@ const cardBasketTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
 const formOrder = new FormOrder(events, cloneTemplate(ensureElement<HTMLTemplateElement>('#order')));
 const formContacts = new FormContact(events, cloneTemplate(ensureElement<HTMLTemplateElement>('#contacts')));
 
+// CATALOG
 events.on("catalog:change", () => {
   const productCards = catalogModel.getItems().map((product) => {
     const card = new CardCatalog(
@@ -58,6 +59,7 @@ events.on("catalog:change", () => {
   gallery.render({ catalog: productCards });
 });
 
+// PREVIEW
 events.on("preview:click", () => {
   const product = catalogModel.getSelected();
   if (!product) {
@@ -71,6 +73,7 @@ events.on("preview:click", () => {
   modal.closeModal();
 });
 
+// SELECT PRODUCT
 events.on("product:selected", (product: IProduct) => {
   catalogModel.setSelected(product);
 
@@ -83,15 +86,20 @@ events.on("product:selected", (product: IProduct) => {
   modal.openModal();
 
   const inCart = shoppingCartModel.hasItem(selected.id);
+
   if (!selected.price) {
-    cardPreview.buttonTextToggle("Недоступно", true);
+    cardPreview.buttonText = "Недоступно";
+    cardPreview.buttonDisabled = true;
   } else if (inCart) {
-    cardPreview.buttonTextToggle("Удалить из корзины", false);
+    cardPreview.buttonText = "Удалить из корзины";
+    cardPreview.buttonDisabled = false;
   } else {
-    cardPreview.buttonTextToggle("Купить", false);
+    cardPreview.buttonText = "Купить";
+    cardPreview.buttonDisabled = false;
   }
 });
 
+// CART
 events.on("cart:changed", () => {
   header.counter = shoppingCartModel.getCount();
   const basketList = shoppingCartModel
@@ -106,12 +114,11 @@ events.on("cart:changed", () => {
       return card.render(product);
     });
 
-  const basketPrice = shoppingCartModel.getTotal();
-  basket.render({
-    basketList,
-    basketPrice,
+    basket.render({
+      basketList,
+      basketPrice: shoppingCartModel.getTotal(),
+    });
   });
-});
 
 events.on("basket:open", () => {
   modal.render({
@@ -120,6 +127,7 @@ events.on("basket:open", () => {
   modal.openModal();
 });
 
+// FORMS
 events.on("order:open", () => {
   const { payment, address } = customerModel.validate();
   const customerData = customerModel.getData();
@@ -128,55 +136,38 @@ events.on("order:open", () => {
     modalContent: formOrder.render({
       payment: customerData.payment,
       address: customerData.address ?? "",
-      validForm: !payment && !address,
-      errorForm: "",
+      errorForm: Object.values({ payment, address }).filter(Boolean).join(", "),
     }),
   });
+  formOrder.toggleButtonForm = !payment && !address;
 });
 
 events.on("form:change", (data: { field: keyof IBuyer; value: string }) => {
-  switch (data.field) {
-    case "payment":
-      customerModel.setPayment(data.value as TPayment);
-      break;
-    case "address":
-      customerModel.setAddress(data.value);
-      break;
-    case "email":
-      customerModel.setEmail(data.value);
-      break;
-    case "phone":
-      customerModel.setPhone(data.value);
-      break;
-  }
-  events.emit("customer:change", data);
+  customerModel.setData({ [data.field]: data.value } as Partial<IBuyer>);
 });
 
-events.on("customer:change", (data: { field: keyof IBuyer; value: string }) => {
+events.on("customer:change", (data: Partial<IBuyer>) => {
     const customerData = customerModel.getData();
     const { payment, address, email, phone } = customerModel.validate();
     
-    if (data.field === "payment" || data.field === "address") {
+    if ("payment" in data || "address" in data) {
       formOrder.render({
         payment: customerData.payment,
         address: customerData.address ?? "",
-        validForm: !payment && !address,
-        errorForm: Object.values({ payment, address })
-          .filter(Boolean)
-          .join(", "),
+        errorForm: Object.values({ payment, address }).filter(Boolean).join(", "),
       });
+      formOrder.toggleButtonForm = !payment && !address;
     }
 
-    if (["email", "phone"].includes(data.field)) {
+    if ("email" in data || "phone" in data) {
       formContacts.render({
         email: customerData.email,
         phone: customerData.phone,
-        validForm: !email && !phone,
         errorForm: Object.values({ email, phone }).filter(Boolean).join(", "),
       });
+      formContacts.toggleButtonForm = !email && !phone;
     }
-  }
-);
+  });
 
 events.on("order:submit", () => {
   const { email, phone } = customerModel.validate();
@@ -186,27 +177,22 @@ events.on("order:submit", () => {
     modalContent: formContacts.render({
       email: customerData.email ?? "",
       phone: customerData.phone ?? "",
-      validForm: !email && !phone,
       errorForm: "",
     }),
   });
+  formContacts.toggleButtonForm = !email && !phone;
 });
 
 events.on("contacts:submit", () => {
   const customerData = customerModel.getData();
 
-  if (!customerData.payment || !customerData.address || !customerData.email || !customerData.phone) {
-    events.emit("order:open");
-    return;
-  }
-
   const dataOrder: IOrder = {
-    payment: customerData.payment,
-    email: customerData.email,
-    phone: customerData.phone,
-    address: customerData.address,
+    payment: customerData.payment!,
+    email: customerData.email!,
+    phone: customerData.phone!,
+    address: customerData.address!,
     total: shoppingCartModel.getTotal(),
-    items: shoppingCartModel.getItems().map((product) => product.id),
+    items: shoppingCartModel.getItems().map((p) => p.id),
   };
 
   shopAPI.sendOrder(dataOrder).then((res) => {
@@ -231,9 +217,7 @@ events.on("modal:close", () => {
 shopAPI
   .getProducts()
   .then((products) => {
-    const items = products.items;
-    catalogModel.setItems(items);
-    events.emit("catalog:change");
+    catalogModel.setItems(products.items);
   })
   .catch((err) => {
     console.error("Ошибка при загрузке каталога:", err);

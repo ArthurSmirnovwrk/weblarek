@@ -1,4 +1,4 @@
-import { IBuyer, TPayment } from "../../types/index";
+import { IBuyer } from "../../types/index";
 import { IEvents } from "../base/Events";
 
 export class BuyerModel {
@@ -26,11 +26,6 @@ export class BuyerModel {
 
     return errors;
   }
-
-  isComplete(): boolean {
-    const d = this.data;
-    return !!(d.payment && d.email && d.phone && d.address);
-  }
 }
 
 export class Buyer extends BuyerModel {
@@ -38,32 +33,8 @@ export class Buyer extends BuyerModel {
     super();
   }
 
-  setPayment(payment: TPayment): void {
-    this.setData({ payment });
-  }
-
-  setEmail(email: string): void {
-    this.setData({ email });
-  }
-
-  setPhone(phone: string): void {
-    this.setData({ phone });
-  }
-
-  setAddress(address: string): void {
-    this.setData({ address });
-    if (address.length > 100) {
-      throw new Error("Address length exceeds 100 characters");
-    }
-  }
-  
-  requestOrderValidation(): void {
-    const validation = this.validate();
-    this.events.emit("order:validate", validation);
-  }
-
-  requestContactsValidation(): void {
-    const validation = this.validate();
-    this.events.emit("contacts:validate", validation);
+  setData(newData: Partial<IBuyer>): void {
+    super.setData(newData);
+    this.events.emit('customer:change', newData);
   }
 }

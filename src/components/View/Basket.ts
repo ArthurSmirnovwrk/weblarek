@@ -1,4 +1,4 @@
-import { createElement, ensureElement } from "../../utils/utils";
+import { ensureElement } from "../../utils/utils";
 import { Component } from "../base/Component";
 import { IEvents } from "../base/Events";
 
@@ -19,19 +19,18 @@ export class Basket extends Component<IBasket> {
         this.basketOrderButton = ensureElement<HTMLButtonElement>(".basket__button", this.container);
         this.basketPriceElement = ensureElement<HTMLElement>(".basket__price", this.container);
 
+        this.basketList = [];
+
         this.basketOrderButton.addEventListener("click", () => {
             this.events.emit("order:open");
         })
     }
 
     set basketList(items: HTMLElement[]) {
+        this.basketListElement.replaceChildren(...items);
         if (items.length) {
-            this.basketListElement.replaceChildren(...items);
-            this.basketOrderButton.removeAttribute("disabled");
+            this.basketOrderButton.removeAttribute('disabled');
         } else {
-            this.basketListElement.replaceChildren(createElement<HTMLSpanElement>("span", {
-                textContent: "Корзина пуста"
-            }));
             this.basketOrderButton.setAttribute('disabled', 'true');
         }
     }

@@ -11,7 +11,8 @@ import { IProduct  } from "../../types/index";
 export interface ICardActions {
   onClick: (event: MouseEvent) => void;
 }
-interface ICardCatalog extends Pick<IProduct, "title" | "price" | "image" | "category"> {};
+
+type ICardCatalog = Pick<IProduct, "image" | "category">;
 export type TCategory = keyof typeof categoryMap;
 
 export class CardCatalog extends Card<ICardCatalog> {
