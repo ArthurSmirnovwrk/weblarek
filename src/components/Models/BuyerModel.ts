@@ -3,7 +3,7 @@ import { IEvents } from "../base/Events";
 
 export class BuyerModel {
   protected data: Partial<IBuyer> = {};
-  
+
   setData(newData: Partial<IBuyer>): void {
     this.data = { ...this.data, ...newData };
   }
@@ -14,6 +14,7 @@ export class BuyerModel {
 
   clear(): void {
     this.data = {};
+    this.events.emit("customer:change", this.data);
   }
 
   validate(): Record<keyof IBuyer, string> {
@@ -26,15 +27,17 @@ export class BuyerModel {
 
     return errors;
   }
+
+  constructor(protected events: IEvents) {}
 }
 
 export class Buyer extends BuyerModel {
-  constructor(private events: IEvents) {
-    super();
+  constructor(events: IEvents) {
+    super(events);
   }
 
   setData(newData: Partial<IBuyer>): void {
     super.setData(newData);
-    this.events.emit('customer:change', newData);
+    this.events.emit("customer:change", newData);
   }
 }

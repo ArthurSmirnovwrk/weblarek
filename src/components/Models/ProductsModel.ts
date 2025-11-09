@@ -6,10 +6,10 @@ export class ProductsModel {
   private selected: IProduct | null = null;
 
   constructor(private events: IEvents) {}
-  
+
   setItems(items: IProduct[]): void {
     this.items = items;
-    this.events.emit('catalog:change');
+    this.events.emit("catalog:change");
   }
 
   getItems(): IProduct[] {
@@ -22,6 +22,7 @@ export class ProductsModel {
 
   setSelected(item: IProduct): void {
     this.selected = item;
+    this.events.emit("product:change", this.selected);
   }
 
   getSelected(): IProduct | null {

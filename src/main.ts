@@ -76,10 +76,9 @@ events.on("preview:click", () => {
 // SELECT PRODUCT
 events.on("product:selected", (product: IProduct) => {
   catalogModel.setSelected(product);
+});
 
-  const selected = catalogModel.getSelected();
-  if (!selected) return;
-
+events.on("product:change", (selected: IProduct) => {
   modal.render({
     modalContent: cardPreview.render({ ...selected }),
   });
